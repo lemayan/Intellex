@@ -1,0 +1,43 @@
+services:
+  - type: web
+    name: deepscholar
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: streamlit run app/frontend/streamlit_app.py --server.port=$PORT --server.address=0.0.0.0 --server.headless=true
+    envVars:
+      - key: LLM_PROVIDER
+        value: openai
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        value: gpt-4-turbo-preview
+      - key: EMBEDDING_PROVIDER
+        value: openai
+      - key: EMBEDDING_MODEL
+        value: text-embedding-3-small
+      - key: VECTORDB_TYPE
+        value: faiss
+      - key: VECTORDB_PATH
+        value: ./data/embeddings/faiss_db
+      - key: WEB_SEARCH_PROVIDER
+        value: tavily
+      - key: TAVILY_API_KEY
+        sync: false
+      - key: MEMORY_TYPE
+        value: in_memory
+      - key: MEMORY_MAX_TOKENS
+        value: 4000
+      - key: DOCUMENT_CHUNK_SIZE
+        value: 1000
+      - key: DOCUMENT_CHUNK_OVERLAP
+        value: 200
+      - key: RETRIEVAL_TOP_K
+        value: 5
+      - key: ENABLE_RERANKING
+        value: true
+      - key: LOG_LEVEL
+        value: INFO
+      - key: ENVIRONMENT
+        value: production
+      - key: DEBUG
+        value: false
