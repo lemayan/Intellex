@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  deepscholar:
+    build: .
+    ports:
+      - "8501:8501"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - LLM_PROVIDER=openai
+      - OPENAI_MODEL=gpt-4-turbo-preview
+      - EMBEDDING_PROVIDER=openai
+      - EMBEDDING_MODEL=text-embedding-3-small
+      - VECTORDB_TYPE=faiss
+      - VECTORDB_PATH=/app/data/embeddings/faiss_db
+      - WEB_SEARCH_PROVIDER=tavily
+      - TAVILY_API_KEY=${TAVILY_API_KEY}
+      - ENVIRONMENT=production
+      - LOG_LEVEL=INFO
+      - MEMORY_TYPE=hybrid
+      - SESSION_MEMORY_DIR=/app/data/memory/sessions
+      - PERSISTENT_MEMORY_DIR=/app/data/memory/persistent
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    networks:
+      - deepscholar-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: Separate worker service for background tasks
+  deepscholar-worker:
+    build: .
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ENVIRONMENT=production
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    networks:
+      - deepscholar-network
+    command: python -m app.workers.queue_worker
+    restart: unless-stopped
+    depends_on:
+      - deepscholar
+
+networks:
+  deepscholar-network:
+    driver: bridge
